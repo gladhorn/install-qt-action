@@ -8,17 +8,17 @@ async function run() {
     const dir = (core.getInput("dir") || process.env.RUNNER_WORKSPACE) + "/Qt";
     const version = core.getInput("version");
 
-    if (core.getInput("variableonly") != "true") {
+    // Qt installer assumes basic requirements that are not installed by
+    // default on Ubuntu.
+    if (process.platform == "linux" && core.getInput("install-deps") == "true") {
+      await exec.exec("sudo apt-get update")
+      await exec.exec("sudo apt-get install build-essential libgl1-mesa-dev -y")
+    }
+
+    if (core.getInput("cached") != "true") {
       // 7-zip is required, and not included on macOS
       if (process.platform == "darwin") {
         await exec.exec("brew install p7zip")
-      }
-
-      // Qt installer assumes basic requirements that are not installed by
-      // default on Ubuntu.
-      if (process.platform == "linux" && core.getInput("install-deps") == "true") {
-        await exec.exec("sudo apt-get update")
-        await exec.exec("sudo apt-get install build-essential libgl1-mesa-dev -y")
       }
 
       await exec.exec("pip3 install setuptools wheel");
